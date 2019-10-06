@@ -1,19 +1,59 @@
 <template>
-  <div id="app">
-    <router-link to="/red">Red</router-link>
-    <router-link to="/yellow">Yellow</router-link>
-    <router-link to="/green">Green</router-link>
-    <div id="traffic-light">
-      <color class="red" :class="{active: this.$route.path === '/red'}"></color>
-      <color class="yellow" :class="{active: this.$route.path === '/yellow'}"></color>
-      <color class="green" :class="{active: this.$route.path ==='/green'}"></color>
+  <div>
+    <div class="traffic-light">
+      <color path="/red" class="red"></color>
+      <color path="/yellow" class="yellow"></color>
+      <color path="/green" class="green"></color>
     </div>
+    <stopwatch :currentTime="timeChange"></stopwatch>
   </div>
 </template>
 
 <script>
+import color from './components/color'
+
+class State {
+  constructor (path, dur, next) {
+    this.path = path
+    this.dur = dur
+    this.next = next
+  }
+}
+
 export default {
-  name: 'App'
+  name: 'App',
+  data: function () {
+    return {
+      timeChange: 0
+    }
+  },
+  methods: {
+    trigger (state, callback) {
+      callback(state)
+      this.timeChange = state.dur + 1
+      setTimeout(() => {
+        this.trigger(state.next, callback)
+      }, state.dur * 1000)
+    }
+  },
+  created () {
+    var red = new State('/red', 10)
+    var yellowR = new State('/yellow', 3)
+    var yellowG = new State('/yellow', 3)
+    var green = new State('/green', 15)
+
+    red.next = yellowR
+    yellowR.next = green
+    green.next = yellowG
+    yellowG.next = red
+    var beginState = red
+    if (this.$route.path === '/yellow') beginState = yellowR
+    else if (this.$route.path === '/green') beginState = green
+
+    this.trigger(beginState, (state) => {
+      this.$router.push({ path: state.path, component: color })
+    })
+  }
 }
 </script>
 
@@ -22,7 +62,7 @@ export default {
     height: 100vh;
   }
 
-  #traffic-light {
+  .traffic-light {
     width: 70px;
     height: 240px;
     background: #222;
@@ -30,18 +70,7 @@ export default {
     margin: auto;
     padding: 15px;
   }
-  .light {
-    display: inline-block;
-    border-radius: 100%;
-    width: 70px;
-    height: 70px;
-    margin-bottom: 8px;
-    opacity: 0.2;
-    transition: opacity 0.2s
-  }
-  .active {
-    opacity: 1;
-  }
+
   .red {
     background: red;
   }
