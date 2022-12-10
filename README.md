@@ -2,6 +2,9 @@
 
 > A Vue.js project
 
+## Demo
+https://traffic-light-from-stasya.netlify.app/#/yellow
+
 ## Build Setup
 
 ``` bash
